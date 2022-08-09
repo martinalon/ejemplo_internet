@@ -55,7 +55,7 @@ SPARK_STEPS = [
             "Args": [
                 "s3-dist-cp",
                 "--src=/output",
-                "--dest=s3://{{ params.BUCKET_NAME }}/{{ params.s3_clean }}",
+                "--dest=s3://{{ params.s3_clean }}",
             ],
         },
     },
