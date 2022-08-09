@@ -29,7 +29,7 @@ SPARK_STEPS = [
             "Jar": "command-runner.jar",
             "Args": [
                 "s3-dist-cp",
-                "--src=s3://{{ params.BUCKET_NAME }}/data",
+                "--src=s3://{{ params.BUCKET_NAME }}",
                 "--dest=/movie",
             ],
         },
