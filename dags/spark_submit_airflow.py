@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.hooks.S3_hook import S3Hook
-from airflow.operators import PythonOperator
+#from airflow.operators import PythonOperator
 from airflow.contrib.operators.emr_create_job_flow_operator import (
     EmrCreateJobFlowOperator,
 )
@@ -14,12 +14,13 @@ from airflow.contrib.operators.emr_terminate_job_flow_operator import (
 )
 
 # Configurations
-BUCKET_NAME = "<your-bucket-name>"  # replace this with your bucket name
-local_data = "./dags/data/movie_review.csv"
-s3_data = "data/movie_review.csv"
-local_script = "./dags/scripts/spark/random_text_classification.py"
-s3_script = "scripts/random_text_classification.py"
-s3_clean = "clean_data/"
+BUCKET_NAME = "martinflores-datasets-scripts-1"  # replace this with your bucket name
+#local_data = "./dags/data/movie_review.csv"
+s3_data = "movie_review.csv"
+#local_script = "./dags/scripts/spark/random_text_classification.py"
+s3_script = "random_text_classification.py"
+s3_clean = "martinflores-results-1"
+
 SPARK_STEPS = [
     {
         "Name": "Move raw data from S3 to HDFS",
@@ -100,9 +101,9 @@ JOB_FLOW_OVERRIDES = {
 }
 
 # helper function
-def _local_to_s3(filename, key, bucket_name=BUCKET_NAME):
-    s3 = S3Hook()
-    s3.load_file(filename=filename, bucket_name=bucket_name, replace=True, key=key)
+#def _local_to_s3(filename, key, bucket_name=BUCKET_NAME):
+#    s3 = S3Hook()
+#    s3.load_file(filename=filename, bucket_name=bucket_name, replace=True, key=key)
 
 
 default_args = {
@@ -126,19 +127,19 @@ dag = DAG(
 
 start_data_pipeline = DummyOperator(task_id="start_data_pipeline", dag=dag)
 
-data_to_s3 = PythonOperator(
-    dag=dag,
-    task_id="data_to_s3",
-    python_callable=_local_to_s3,
-    op_kwargs={"filename": local_data, "key": s3_data,},
-)
+#data_to_s3 = PythonOperator(
+#    dag=dag,
+#    task_id="data_to_s3",
+#    python_callable=_local_to_s3,
+#    op_kwargs={"filename": local_data, "key": s3_data,},
+#)
 
-script_to_s3 = PythonOperator(
-    dag=dag,
-    task_id="script_to_s3",
-    python_callable=_local_to_s3,
-    op_kwargs={"filename": local_script, "key": s3_script,},
-)
+#script_to_s3 = PythonOperator(
+#    dag=dag,
+#    task_id="script_to_s3",
+#    python_callable=_local_to_s3,
+#    op_kwargs={"filename": local_script, "key": s3_script,},
+#)
 
 # Create an EMR cluster
 create_emr_cluster = EmrCreateJobFlowOperator(
@@ -186,6 +187,6 @@ terminate_emr_cluster = EmrTerminateJobFlowOperator(
 
 end_data_pipeline = DummyOperator(task_id="end_data_pipeline", dag=dag)
 
-start_data_pipeline >> [data_to_s3, script_to_s3] >> create_emr_cluster
+start_data_pipeline >>  create_emr_cluster
 create_emr_cluster >> step_adder >> step_checker >> terminate_emr_cluster
 terminate_emr_cluster >> end_data_pipeline
